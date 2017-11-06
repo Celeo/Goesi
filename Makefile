@@ -1,7 +1,7 @@
 all: run
 
 BUILD_COMMAND = go build
-RUN_COMMAND = ./esi
+RUN_COMMAND = ./goesi
 CLEAN_COMMAND = go clean
 
 build:

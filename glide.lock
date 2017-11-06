@@ -1,6 +1,8 @@
-hash: 0209a52be393669eb0d0e8fea955c483e35fe2258bc8890d2544e015fb0f16de
-updated: 2017-11-05T18:11:14.132712367-08:00
+hash: 6f91ce10643950536090b24510eddf0331a123f40e9a4d4ac4f169753730f705
+updated: 2017-11-05T19:14:12.879896153-08:00
 imports:
 - name: github.com/Jeffail/gabs
   version: 2a3aa15961d5fee6047b8151b67ac2f08ba2c48c
+- name: github.com/op/go-logging
+  version: b2cb9fa56473e98db8caba80237377e83fe44db5
 testImports: []

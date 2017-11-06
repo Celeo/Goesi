@@ -1,4 +1,4 @@
-# ESI
+# Goesi
 
 A Go library to interact with the EVE Swagger Interface (ESI).
 
