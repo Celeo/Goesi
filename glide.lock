@@ -1,0 +1,6 @@
+hash: 0209a52be393669eb0d0e8fea955c483e35fe2258bc8890d2544e015fb0f16de
+updated: 2017-11-05T18:11:14.132712367-08:00
+imports:
+- name: github.com/Jeffail/gabs
+  version: 2a3aa15961d5fee6047b8151b67ac2f08ba2c48c
+testImports: []

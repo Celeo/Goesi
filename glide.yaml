@@ -1,0 +1,4 @@
+package: github.com/celeo/esi
+import:
+- package: github.com/Jeffail/gabs
+  version: ^1.0.0
