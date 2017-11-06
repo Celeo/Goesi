@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 var log = logging.MustGetLogger("goesi")
@@ -166,8 +167,36 @@ func (e *ESI) WhoAmI() (*gabs.Container, error) {
 // Get fetches data from ESI
 func (e *ESI) Get(path string) (*gabs.Container, error) {
 	url := BaseURL + e.Version + "/" + path + "/"
-	log.Info("Making call to URL '%s'\n", url)
+	log.Info("Making GET call to URL '%s'\n", url)
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Error("Error creating a new request struct")
+		return nil, err
+	}
+	if e.AccessToken != "" {
+		req.Header.Add("Authorization", "Bearer"+e.AccessToken)
+	}
+	req.Header.Add("User-Agent", e.UserAgent)
+	req.Header.Add("Accept", "application/json")
+	resp, err := e.client.Do(req)
+	if err != nil {
+		log.Error("Error making request to ESI")
+		return nil, err
+	}
+	defer resp.Body.Close()
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Error("Error converting response body to Gabs container")
+		return nil, err
+	}
+	return json, nil
+}
+
+// Post sends data to ESI and returns the response
+func (e *ESI) Post(path, data string) (*gabs.Container, error) {
+	url := BaseURL + e.Version + "/" + path + "/"
+	log.Info("Making POST call to URL '%s'\n", url)
+	req, err := http.NewRequest("POST", url, strings.NewReader(data))
 	if err != nil {
 		log.Error("Error creating a new request struct")
 		return nil, err
