@@ -59,3 +59,16 @@ fmt.Println(data)
 ```
 
 As `Post()` has to take the body as a parameter, there's no automatic string formatting on this method.
+
+## Handling the response
+
+There aren't generated structs for the ESI endpoints; all data is stored in [Gabs](https://github.com/Jeffail/gabs) containers. To use the data returned from this library, you'll need to interact with the returned struct:
+
+
+```go
+data, err := esi.Get("wars/%d", 569999)
+if err != nil {
+    panic(err)
+}
+fmt.Println(int64(data.Path("aggressor.alliance_id").Data().(float64)))
+```
