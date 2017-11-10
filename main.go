@@ -18,6 +18,7 @@ var log = logging.MustGetLogger("goesi")
 // ESI is the interface for interacting with the EVE Swagger Interface
 type ESI struct {
 	client            *http.Client
+	cache             *Cache
 	Version           string
 	ClientID          string
 	ClientSecret      string
@@ -28,7 +29,7 @@ type ESI struct {
 	RefreshToken      string
 }
 
-var (
+const (
 	// BaseURL is the top-level URL of ESI
 	BaseURL = "https://esi.tech.ccp.is/"
 	// OauthURL is the URL for making the first OAuth request
@@ -44,8 +45,10 @@ var (
 // New creates a new instance of the ESI struct and returns it
 func New(clientID, clientSecret, clientCallbackURL string) ESI {
 	log.Debug("Initializing a new ESI struct")
+	cache := make(Cache)
 	return ESI{
 		&http.Client{},
+		&cache,
 		"latest",
 		clientID,
 		clientSecret,
@@ -140,6 +143,15 @@ func (e *ESI) Authenticate(code string) error {
 	return nil
 }
 
+// setupHeaders adds the standard headers to the request
+func setupHeaders(e *ESI, req *http.Request) {
+	req.Header.Add("User-Agent", e.UserAgent)
+	req.Header.Add("Accept", "application/json")
+	if e.AccessToken != "" {
+		req.Header.Add("Authorization", "Bearer "+e.AccessToken)
+	}
+}
+
 // WhoAmI returns basic information about the access token's character
 func (e *ESI) WhoAmI() (*gabs.Container, error) {
 	log.Info("Making whoami request")
@@ -147,9 +159,7 @@ func (e *ESI) WhoAmI() (*gabs.Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("User-Agent", e.UserAgent)
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer "+e.AccessToken)
+	setupHeaders(e, req)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		log.Error("Error making whoami request to ESI")
@@ -164,20 +174,21 @@ func (e *ESI) WhoAmI() (*gabs.Container, error) {
 	return json, nil
 }
 
-// Get fetches data from ESI
+// Get fetches data from ESI (or returns cached data)
 func (e *ESI) Get(path string) (*gabs.Container, error) {
 	url := BaseURL + e.Version + "/" + path + "/"
+	cached := e.cache.get(url)
+	if cached != nil {
+		log.Info("Returning cached value for URL '%s'", url)
+		return cached, nil
+	}
 	log.Info("Making GET call to URL '%s'\n", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Error("Error creating a new request struct")
 		return nil, err
 	}
-	if e.AccessToken != "" {
-		req.Header.Add("Authorization", "Bearer"+e.AccessToken)
-	}
-	req.Header.Add("User-Agent", e.UserAgent)
-	req.Header.Add("Accept", "application/json")
+	setupHeaders(e, req)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		log.Error("Error making request to ESI")
@@ -201,11 +212,7 @@ func (e *ESI) Post(path, data string) (*gabs.Container, error) {
 		log.Error("Error creating a new request struct")
 		return nil, err
 	}
-	if e.AccessToken != "" {
-		req.Header.Add("Authorization", "Bearer"+e.AccessToken)
-	}
-	req.Header.Add("User-Agent", e.UserAgent)
-	req.Header.Add("Accept", "application/json")
+	setupHeaders(e, req)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		log.Error("Error making request to ESI")
