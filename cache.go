@@ -41,6 +41,7 @@ func (c *Cache) get(u string) *gabs.Container {
 // set puts the url and its data into the cache
 func (c *Cache) set(u string, d *gabs.Container, h http.Header) error {
 	expires, err := getExpiration(h.Get("Expires"))
+	log.Debug("Storing url in cache, '%s', expires '%s'", u, expires)
 	if err != nil {
 		return err
 	}

@@ -175,8 +175,8 @@ func (e *ESI) WhoAmI() (*gabs.Container, error) {
 }
 
 // Get fetches data from ESI (or returns cached data)
-func (e *ESI) Get(path string) (*gabs.Container, error) {
-	url := BaseURL + e.Version + "/" + path + "/"
+func (e *ESI) Get(path string, args ...interface{}) (*gabs.Container, error) {
+	url := BaseURL + e.Version + "/" + fmt.Sprintf(path, args...) + "/"
 	cached := e.cache.get(url)
 	if cached != nil {
 		log.Info("Returning cached value for URL '%s'", url)
@@ -200,6 +200,7 @@ func (e *ESI) Get(path string) (*gabs.Container, error) {
 		log.Error("Error converting response body to Gabs container")
 		return nil, err
 	}
+	e.cache.set(url, json, resp.Header)
 	return json, nil
 }
 
@@ -225,4 +226,11 @@ func (e *ESI) Post(path, data string) (*gabs.Container, error) {
 		return nil, err
 	}
 	return json, nil
+}
+
+// ClearCache creates a new cache, overriding the previous
+func (e *ESI) ClearCache() {
+	log.Debug("Clearing cache")
+	cache := make(Cache)
+	e.cache = &cache
 }
