@@ -7,7 +7,8 @@ This library uses [Gabs](https://github.com/Jeffail/gabs) to handle the JSON; st
 ## Downloading
 
 ```bash
-go get github.com/Celeo/Goesi
+$ go get github.com/Celeo/Goesi
+$ glide install
 ```
 
 ## Initialization
