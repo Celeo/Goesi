@@ -85,9 +85,7 @@ type authenticateResponse struct {
 
 // createAuthorizationHeader returns the header string required for getting an access token from SSO
 func createAuthorizationHeader(e *ESI) string {
-	header := "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", e.ClientID, e.ClientSecret)))
-	log.Debug("Header: " + header)
-	return header
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", e.ClientID, e.ClientSecret)))
 }
 
 // Authenticate takes a code from the SSO and fetches the access token
@@ -107,14 +105,12 @@ func (e *ESI) Authenticate(code string) error {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	log.Debug("Making request to authorization url")
 	resp, err := e.client.Do(req)
 	if err != nil {
 		log.Error("Error making authorization url request")
 		return err
 	}
 
-	log.Debug("Getting response")
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Error("Cannot read response body")
@@ -123,13 +119,8 @@ func (e *ESI) Authenticate(code string) error {
 	defer resp.Body.Close()
 	if string(body) == "" || resp.StatusCode != http.StatusOK {
 		log.Errorf("Error with authenticate response, code %d, body: '%s'", resp.StatusCode, body)
-		log.Debug("Headers:")
-		for key, value := range resp.Header {
-			log.Debugf("%s = %s", key, value)
-		}
 		return fmt.Errorf("Response body is empty")
 	}
-	log.Debug("Parsing response")
 	var respData authenticateResponse
 	err = json.Unmarshal(body, &respData)
 	if err != nil {
@@ -137,7 +128,6 @@ func (e *ESI) Authenticate(code string) error {
 		return err
 	}
 
-	log.Debug("Setting token")
 	e.AccessToken = respData.AccessToken
 	e.RefreshToken = respData.RefreshToken
 	return nil
